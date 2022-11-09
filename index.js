@@ -14,5 +14,5 @@ app.get('/', (req, res) => {
 })
 
 app.listen(port, () => {
-    console.log(`consult service server running on ${port}`);
+    console.log(`consult service running on ${port}`);
 })
