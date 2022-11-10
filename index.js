@@ -17,6 +17,22 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@clu
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verifyJWT(req, res, next) {
+    const authHeaders = req.headers.authorization;
+    if (!authHeaders) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    }
+    const token = authHeaders.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+        if (err) {
+            res.status(401).send({ message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
 async function run() {
     try {
         const serviceCollection = client.db('consultService').collection('services');
@@ -45,9 +61,10 @@ async function run() {
             const service = await serviceCollection.findOne(query);
             res.send(service);
         });
-        //order Api
-        app.get('/reviews', async (req, res) => {
+        //reviews Api
+        app.get('/reviews', verifyJWT, async (req, res) => {
 
+            console.log(req.headers)
             let query = {};
             if (req.query.email) {
                 query = {
